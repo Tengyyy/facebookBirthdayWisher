@@ -1,21 +1,15 @@
-from selenium import webdriver
-from time import sleep
+import os
+import time
 
-from selenium.webdriver import ActionChains
+from dotenv import load_dotenv
+from selenium import webdriver
+from selenium.common import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.remote.webelement import WebElement
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import TimeoutException
-
-import os
-from dotenv import load_dotenv
-import time
 
 load_dotenv()
 
@@ -45,23 +39,27 @@ time.sleep(5)
 
 driver.get("https://www.facebook.com/events/birthdays")
 
-if "Tänased sünnipäevad" not in driver.page_source:
-    # täna pole kellelgi sünnipäev, sulgeb programmi
-    exit()
-
-# leiab üles div-id "Tänased sünnipäevad", "Hiljutised sõnnipäevad" ning "Tulevased sünnipäevad", siit peab eraldi üles otsima tänaste sünnipäevade div-i
+# leiab üles div-id "Tänased sünnipäevad", "Hiljutised sõnnipäevad" ning "Tulevased sünnipäevad"
+# siit peab eraldi üles otsima tänaste sünnipäevade div-i
 containers = WebDriverWait(driver, 10).until(
     EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='xyamay9 x1l90r2v']")))
 
-if containers[0].find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME, "span").text != "Tänased sünnipäevad":
+if len(containers) == 0 or containers[0].find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME, "span").text != "Tänased sünnipäevad":  # TODO: teised keeled
     # täna pole kellelgi sünnipäev, sulgeb programmi
     exit()
 
-# TODO: containers[0] on tänaste sünnipäevade div, seal sees tuleb otsida üles kellele saata õnnitlus
+# kõik inimesed, kellel on täna sünnipäev
+inimesed = containers[0].find_elements(By.CSS_SELECTOR, "div[class='x78zum5 xz9dl7a x4uap5 xwib8y2 xkhd6sd']")
 
+whitelist = [] # siia tuleb lugeda sealt UI-st need nimed kellele saata
 
-# kirjutab kõikidesse input kastidesse "palju õnne"
-# elements = WebDriverWait(driver, 10).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[role='textbox']")))
-# for element in elements:
-#    element.clear()
-#   element.send_keys("palju õnne")
+for inimene in inimesed:
+    if inimene.find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME, "span").text in whitelist:
+        # inimesel on täna sünnipäev ning ta on meie õnnesoovimise whitelistis
+        try:
+            # soovib õnne, kui inimesele pole veel õnne soovitud ehk kui textbox on nähtav
+            textbox = inimene.find_element(By.CSS_SELECTOR, "div[role='textbox']")
+            textbox.clear()
+            textbox.send_keys("palju õnne")  # siia peab panema custom õnnesoovi
+        except NoSuchElementException:
+            print("ei saanud õnne soovida")
