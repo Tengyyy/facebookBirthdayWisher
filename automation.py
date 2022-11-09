@@ -22,6 +22,7 @@ def ava_brauser():
 
 
 def logi_sisse(browser_driver):
+    load_dotenv()
     browser_driver.get("https://www.facebook.com/")
     WebDriverWait(browser_driver, 30).until(EC.element_to_be_clickable(
         (By.XPATH, '//button[@class="_42ft _4jy0 _9xo6 _4jy3 _4jy1 selected _51sy"]'))).click()
@@ -67,7 +68,8 @@ def soovi_õnne(browser_driver, whitelist):
                 # soovib õnne, kui inimesele pole veel õnne soovitud ehk kui textbox on nähtav
                 textbox = inimene.find_element(By.CSS_SELECTOR, "div[role='textbox']")
                 textbox.clear()
-                textbox.send_keys("palju õnne")  # siia peab panema custom õnnesoovi
+                textbox.send_keys("Palju õnne!")  # siia peab panema custom õnnesoovi
+                textbox.send_keys(Keys.ENTER)
             except NoSuchElementException:
                 print("ei saanud õnne soovida")
 
@@ -107,16 +109,15 @@ def sõbrad(browser_driver):
 
             for element in konteinerid:
                 pilt = element.find_element(By.TAG_NAME, "image").get_property("href").get("animVal")
-                nimi = element.find_element(By.CSS_SELECTOR, "span[class='x193iq5w xeuugli x13faqbe x1vvkbs x1xmvt09 x6prxxf xvq8zen x1s688f xzsf02u']").text
-                sõprade_list.append((pilt, nimi))
+                nimi = element.find_element(By.CSS_SELECTOR,
+                                            "span[class='x193iq5w xeuugli x13faqbe x1vvkbs x1xmvt09 x6prxxf xvq8zen x1s688f xzsf02u']").text
 
-            print(sõprade_list[0])
+                sõprade_list.append(
+                    {
+                        "pilt": pilt,
+                        "nimi": nimi
+                    })
+
             return sõprade_list  # no more friends loaded
 
             # returnib listi, mis koosneb tuple'itest kujul (pilt, nimi)
-
-
-load_dotenv()
-driver = ava_brauser()
-logi_sisse(driver)
-sõbrad(driver)
