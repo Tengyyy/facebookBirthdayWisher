@@ -1,5 +1,6 @@
 import os
 import time
+from pathlib import Path
 
 from dotenv import load_dotenv
 from selenium import webdriver
@@ -34,9 +35,9 @@ def logi_sisse(browser_driver):
 
     # textfieldidesse kasutaja ja parooli sisestamine
     username.clear()
-    username.send_keys(os.environ.get("USER"))  # siia tuleb kasutajanimi/mail
+    username.send_keys(os.environ.get("FACEBOOK-USER"))  # siia tuleb kasutajanimi/mail
     password.clear()
-    password.send_keys(os.environ.get("PASS"))  # siia tuleb parool
+    password.send_keys(os.environ.get("FACEBOOK-PASS"))  # siia tuleb parool
 
     # sisenemise nupu vajutamine
     WebDriverWait(browser_driver, 2).until(
@@ -45,33 +46,54 @@ def logi_sisse(browser_driver):
     WebDriverWait(browser_driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a[aria-label='Facebook']")))
 
 
-def soovi_õnne(browser_driver, whitelist):
+def soovi_õnne(browser_driver):
+
+    whitelist = []
+    with open(str(Path.home().joinpath("facebookBirthdayWisher")) + os.sep + "friend_list.txt", "r", encoding="UTF-8") as f:
+        lines = f.readlines()
+    non_empty_lines = []
+    for line in lines:
+        if line.strip():
+            non_empty_lines.append(line)
+
+    for line in non_empty_lines:
+        line_as_list = line.strip().split(';')
+        if line_as_list[2] == "True":
+            whitelist.append({"name": line_as_list[0], "custom_wish": line_as_list[1]})
+
+
     browser_driver.get("https://www.facebook.com/events/birthdays")
 
     # leiab üles div-id "Tänased sünnipäevad", "Hiljutised sõnnipäevad" ning "Tulevased sünnipäevad"
     # siit peab eraldi üles otsima tänaste sünnipäevade div-i
     containers = WebDriverWait(browser_driver, 10).until(
-        EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='xyamay9 x1l90r2v']")))
+        EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='x1l90r2v xyamay9']")))
+
 
     if len(containers) == 0 or containers[0].find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME,
                                                                                           "span").text != "Tänased sünnipäevad":  # TODO: teised keeled
         # täna pole kellelgi sünnipäev, sulgeb programmi
+        print("test")
         exit()
 
     # kõik inimesed, kellel on täna sünnipäev
-    inimesed = containers[0].find_elements(By.CSS_SELECTOR, "div[class='x78zum5 xz9dl7a x4uap5 xwib8y2 xkhd6sd']")
+    inimesed = containers[0].find_elements(By.CSS_SELECTOR, "div[class='x78zum5  xz9dl7a x4uap5 xwib8y2 xkhd6sd']")
 
     for inimene in inimesed:
-        if inimene.find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME, "span").text in whitelist:
-            # inimesel on täna sünnipäev ning ta on meie õnnesoovimise whitelistis
-            try:
-                # soovib õnne, kui inimesele pole veel õnne soovitud ehk kui textbox on nähtav
-                textbox = inimene.find_element(By.CSS_SELECTOR, "div[role='textbox']")
-                textbox.clear()
-                textbox.send_keys("Palju õnne!")  # siia peab panema custom õnnesoovi
-                textbox.send_keys(Keys.ENTER)
-            except NoSuchElementException:
-                print("ei saanud õnne soovida")
+        for item in whitelist:
+            if inimene.find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME, "span").text == item.get("name"):
+                # inimesel on täna sünnipäev ning ta on meie õnnesoovimise whitelistis
+                try:
+                    # soovib õnne, kui inimesele pole veel õnne soovitud ehk kui textbox on nähtav
+                    textbox = inimene.find_element(By.CSS_SELECTOR, "div[role='textbox']")
+                    textbox.clear()
+                    if item.get("custom_wish").strip():
+                        textbox.send_keys(item.get("custom_wish"))
+                    else:
+                        textbox.send_keys("Palju õnne!")
+                    textbox.send_keys(Keys.ENTER)
+                except NoSuchElementException:
+                    print("ei saanud õnne soovida")
 
 
 def get_friends_list(browser_driver):
@@ -85,10 +107,11 @@ def sõbrad(browser_driver):
 
     num_of_loaded_friends = len(get_friends_list(browser_driver))
 
+    browser_driver.find_element(By.CSS_SELECTOR,
+                                "div[class='x14nfmen x1s85apg xds687c x5yr21d xg01cxk x10l6tqk x13vifvy x1wsgiic x19991ni xwji4o3 x1kky2od x1sd63oq']").click()
+
     while True:
         # vajutab sõprade listi scrollbari peale ja siis vajutab end klahvi kuni jõuab listi lõppu
-        browser_driver.find_element(By.CSS_SELECTOR,
-                                    "div[class='x14nfmen x1s85apg xds687c x5yr21d xg01cxk x10l6tqk x13vifvy x1wsgiic x19991ni xwji4o3 x1kky2od x1sd63oq']").click()
         ActionChains(browser_driver) \
             .key_down(Keys.END) \
             .key_up(Keys.END) \
@@ -108,16 +131,25 @@ def sõbrad(browser_driver):
             sõprade_list = []
 
             for element in konteinerid:
-                pilt = element.find_element(By.TAG_NAME, "image").get_property("href").get("animVal")
-                nimi = element.find_element(By.CSS_SELECTOR,
-                                            "span[class='x193iq5w xeuugli x13faqbe x1vvkbs x1xmvt09 x6prxxf xvq8zen x1s688f xzsf02u']").text
+                try:
+                    pilt = element.find_element(By.TAG_NAME, "image").get_property("href").get("animVal")
+                    nimi = element.find_element(By.CSS_SELECTOR,
+                                                "span[class='x193iq5w xeuugli x13faqbe x1vvkbs x1xmvt09 x6prxxf xvq8zen x1s688f xzsf02u']").text
 
-                sõprade_list.append(
-                    {
-                        "pilt": pilt,
-                        "nimi": nimi
-                    })
+                    sõprade_list.append(
+                        {
+                            "pilt": pilt,
+                            "nimi": nimi
+                        })
+                except NoSuchElementException:
+                    print("ei leidnud")
 
             return sõprade_list  # no more friends loaded
 
-            # returnib listi, mis koosneb tuple'itest kujul (pilt, nimi)
+            # returnib listi, mis koosneb dictionarydest kujul {"pilt": pilt, "nimi": nimi}
+
+
+if __name__ == '__main__':
+    browser = ava_brauser()
+    logi_sisse(browser)
+    soovi_õnne(browser)

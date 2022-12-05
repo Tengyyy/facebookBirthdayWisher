@@ -10,7 +10,7 @@ class ScrollableFrame:
         self.main_frame = Frame(self.master)
         self.main_frame.pack(fill=BOTH, expand=1)
 
-        self.canvas = Canvas(self.main_frame, background="blue")
+        self.canvas = Canvas(self.main_frame, background="#1E1E1E")
         self.canvas.pack(side=LEFT, fill=BOTH, expand=True)
 
         self.scrollbar = Scrollbar(self.main_frame, orient=VERTICAL, command=self.canvas.yview)
@@ -19,7 +19,7 @@ class ScrollableFrame:
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
         self.canvas.bind('<Configure>', self.canvas_configure)
 
-        self.frame = Frame(self.canvas, background="red")
+        self.frame = Frame(self.canvas, background="#1E1E1E")
 
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw", tags="frame")
 
