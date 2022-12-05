@@ -1,0 +1,5 @@
+customtkinter==4.6.3
+Pillow==9.3.0
+python-dotenv==0.21.0
+selenium==4.7.2
+webdriver_manager==3.8.5
