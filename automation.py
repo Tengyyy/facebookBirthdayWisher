@@ -157,5 +157,5 @@ def sõbrad(browser_driver):
 
 if __name__ == '__main__':
     browser = ava_brauser()
-    logi_sisse(browser)
+    logi_sisse(browser, ls)
     soovi_õnne(browser)
