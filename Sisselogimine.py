@@ -11,19 +11,21 @@ root.iconbitmap("icon.ico")
 
 
 def vajutus():
-    kasutajanimi = []
-    parool = []
-    kasutajanimi += [entry1.get()]
-    parool += [entry2.get()]
-    print(kasutajanimi, parool)
-    return kasutajanimi, parool
+    andmed = []
+    andmed += [entry1.get()] #kasutajanimi
+    andmed += [entry2.get()] #parool
+    f = open("andmed.txt", "w")
+    f.write(andmed[0] + "\n")
+    f.write(andmed[1])
+    f.close()
+    return andmed
 
 label0 = CTkLabel(root, text = "Palun logige ennast sisse:")
 label1 = CTkLabel(root, text="Kasutajanimi: ")
 label2 = CTkLabel(root, text="Parool: ")
 entry1 = CTkEntry(root)
 entry2 = CTkEntry(root, show="*")
-button1 = CTkButton(root, text="Logi sisse", command=vajutus)
+button1 = CTkButton(root, text="Logi sisse", command=lambda: [vajutus(), root.destroy()])
 
 label0.grid(row=1, column=2)
 label1.grid(row=2,column=1)
