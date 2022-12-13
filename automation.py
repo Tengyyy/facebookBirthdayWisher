@@ -28,7 +28,7 @@ ls = []
 for i in f:
     ls += [i.strip()]
     
-def logi_sisse(browser_driver):
+def logi_sisse(browser_driver, ls):
     load_dotenv()
     browser_driver.get("https://www.facebook.com/")
     WebDriverWait(browser_driver, 30).until(EC.element_to_be_clickable(
