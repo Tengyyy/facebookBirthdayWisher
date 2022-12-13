@@ -2,6 +2,7 @@ import os
 import time
 from pathlib import Path
 
+from Sisselogimine import vajutus
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.common import NoSuchElementException, TimeoutException
@@ -22,6 +23,11 @@ def ava_brauser():
     return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
 
+f = open("andmed.txt", "r")
+ls = []
+for i in f:
+    ls += [i.strip()]
+    
 def logi_sisse(browser_driver):
     load_dotenv()
     browser_driver.get("https://www.facebook.com/")
@@ -35,9 +41,9 @@ def logi_sisse(browser_driver):
 
     # textfieldidesse kasutaja ja parooli sisestamine
     username.clear()
-    username.send_keys(os.environ.get("FACEBOOK-USER"))  # siia tuleb kasutajanimi/mail
+    username.send_keys(ls[0])  # siia tuleb kasutajanimi/mail
     password.clear()
-    password.send_keys(os.environ.get("FACEBOOK-PASS"))  # siia tuleb parool
+    password.send_keys(ls[1])  # siia tuleb parool
 
     # sisenemise nupu vajutamine
     WebDriverWait(browser_driver, 2).until(
