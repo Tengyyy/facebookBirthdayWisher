@@ -10,7 +10,7 @@ root.title("Sisselogija")
 root.iconbitmap("icon.ico")
 
 
-def vajutus(*Args):
+def vajutus():
     kasutajanimi = []
     parool = []
     kasutajanimi += [entry1.get()]
@@ -28,9 +28,9 @@ button1 = CTkButton(root, text="Logi sisse", command=vajutus)
 label0.grid(row=1, column=2)
 label1.grid(row=2,column=1)
 label2.grid(row=3, column=1)
-entry1.grid(row=2, column=2)
+entry1.grid(row=2, column=2, pady=5)
 entry2.grid(row=3, column=2)
-button1.grid(row=4, column=2)
+button1.grid(row=4, column=2, pady=10)
 
 
 
