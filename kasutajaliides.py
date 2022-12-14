@@ -41,8 +41,7 @@ def search():
 
 
 def save():
-    with open(str(Path.home().joinpath("facebookBirthdayWisher")) + os.sep + "friend_list.txt", "w",
-              encoding="UTF-8") as f:
+    with open("friend_list.txt", "w", encoding="UTF-8") as f:
         for friend in all_friends:
             active = friend.get("active").get() == 1
             f.write(friend.get("name") + ";" + friend.get("custom_wish") + ";" + str(active) + os.linesep)
@@ -54,14 +53,14 @@ def reload():
             objFrame.winfo_children()[1].destroy()
     root.update()
     browser = automation.ava_brauser()
-    automation.logi_sisse(browser)
+    automation.logi_sisse(browser, automation.loe_andmed())
     friends = automation.sõbrad(browser)
     update_friends(friends)
 
 
 def get_friends():
     driver = automation.ava_brauser()
-    automation.logi_sisse(driver)
+    automation.logi_sisse(driver, automation.loe_andmed())
     return automation.sõbrad(driver)
 
 
@@ -69,13 +68,12 @@ def load_friends():
     global all_friends
     all_friends.clear()
 
-    home = Path.home()
-    path = home.joinpath("facebookBirthdayWisher", "pictures")
-    path.mkdir(parents=True, exist_ok=True)  # if folder doesn't exist, create it
+    Path("pildid").mkdir(exist_ok=True)  # if folder doesn't exist, create it
+    Path("friend_list.txt").touch(exist_ok=True)
 
-    image_files = Path(path).glob("*")
+    image_files = Path("pildid").glob("*")
 
-    with open(str(home.joinpath("facebookBirthdayWisher")) + os.sep + "friend_list.txt", "r", encoding="UTF-8") as f:
+    with open("friend_list.txt", "r", encoding="UTF-8") as f:
         lines = f.readlines()
     non_empty_lines = []
     for line in lines:
@@ -118,11 +116,10 @@ def update_friends(friend_list):
     global all_friends
     all_friends.clear()
 
-    home = Path.home()
-    home.joinpath("facebookBirthdayWisher", "pictures").mkdir(parents=True,
-                                                              exist_ok=True)  # create folder to store images
+    Path("pildid").mkdir(parents=True, exist_ok=True)  # create folder to store images
+    Path("friend_list.txt").touch(exist_ok=True)
 
-    folder = str(home.joinpath("facebookBirthdayWisher", "pictures"))
+    folder = "pildid"
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
         try:
@@ -133,7 +130,7 @@ def update_friends(friend_list):
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
 
-    with open(str(home.joinpath("facebookBirthdayWisher")) + os.sep + "friend_list.txt", "r", encoding="UTF-8") as f:
+    with open("friend_list.txt", "r", encoding="UTF-8") as f:
         old_list = []
 
         for line in f:
@@ -142,7 +139,7 @@ def update_friends(friend_list):
                 old_list.append(
                     {"name": line_as_list[0], "custom_wish": line_as_list[1], "active": line_as_list[2] == "True"})
 
-    with open(str(home.joinpath("facebookBirthdayWisher")) + os.sep + "friend_list.txt", "w", encoding="UTF-8") as f:
+    with open("friend_list.txt", "w", encoding="UTF-8") as f:
 
         for i in range(len(friend_list)):
             custom_wish = ""
@@ -156,7 +153,7 @@ def update_friends(friend_list):
 
             f.write(friend_list[i].get("nimi") + ";" + str(custom_wish) + ";" + active + os.linesep)
 
-            path = str(home.joinpath("facebookBirthdayWisher", "pictures")) + os.sep + "pic" + str(i) + ".jpg"
+            path = "pildid" + os.sep + "pic" + str(i) + ".jpg"
             urllib.request.urlretrieve(friend_list[i].get("pilt"), path)
             img = Image.open(path)
             img.resize((50, 50))

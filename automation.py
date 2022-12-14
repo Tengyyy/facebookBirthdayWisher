@@ -2,7 +2,6 @@ import os
 import time
 from pathlib import Path
 
-from Sisselogimine import vajutus
 from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.common import NoSuchElementException, TimeoutException
@@ -18,16 +17,21 @@ from webdriver_manager.chrome import ChromeDriverManager
 def ava_brauser():
     chrome_options = Options()
     chrome_options.add_argument("--disable-notifications")
-    chrome_options.add_experimental_option("detach", True)  # jätab akna lahti
+    #chrome_options.add_argument("--headless")  # avab akna nähtamatult
+    #chrome_options.add_experimental_option("detach", True)  # jätab akna lahti
 
     return webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
 
 
-f = open("andmed.txt", "r")
-ls = []
-for i in f:
-    ls += [i.strip()]
-    
+def loe_andmed():
+    f = open("andmed.txt", "r")
+    ls = []
+    for i in f:
+        ls += [i.strip()]
+
+    return ls
+
+
 def logi_sisse(browser_driver, ls):
     load_dotenv()
     browser_driver.get("https://www.facebook.com/")
@@ -55,7 +59,7 @@ def logi_sisse(browser_driver, ls):
 def soovi_õnne(browser_driver):
 
     whitelist = []
-    with open(str(Path.home().joinpath("facebookBirthdayWisher")) + os.sep + "friend_list.txt", "r", encoding="UTF-8") as f:
+    with open("friend_list.txt", "r", encoding="UTF-8") as f:
         lines = f.readlines()
     non_empty_lines = []
     for line in lines:
@@ -67,7 +71,6 @@ def soovi_õnne(browser_driver):
         if line_as_list[2] == "True":
             whitelist.append({"name": line_as_list[0], "custom_wish": line_as_list[1]})
 
-
     browser_driver.get("https://www.facebook.com/events/birthdays")
 
     # leiab üles div-id "Tänased sünnipäevad", "Hiljutised sõnnipäevad" ning "Tulevased sünnipäevad"
@@ -75,11 +78,11 @@ def soovi_õnne(browser_driver):
     containers = WebDriverWait(browser_driver, 10).until(
         EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "div[class='x1l90r2v xyamay9']")))
 
+    time.sleep(1)
 
     if len(containers) == 0 or containers[0].find_element(By.TAG_NAME, "h2").find_element(By.TAG_NAME,
                                                                                           "span").text != "Tänased sünnipäevad":  # TODO: teised keeled
         # täna pole kellelgi sünnipäev, sulgeb programmi
-        print("test")
         exit()
 
     # kõik inimesed, kellel on täna sünnipäev
@@ -113,8 +116,10 @@ def sõbrad(browser_driver):
 
     num_of_loaded_friends = len(get_friends_list(browser_driver))
 
+    time.sleep(3)
+
     browser_driver.find_element(By.CSS_SELECTOR,
-                                "div[class='x14nfmen x1s85apg xds687c x5yr21d xg01cxk x10l6tqk x13vifvy x1wsgiic x19991ni xwji4o3 x1kky2od x1sd63oq']").click()
+                                "label[class='x1a2a7pz x1qjc9v5 xnwf7zb x40j3uw x1s7lred x15gyhx8 x9f619 x78zum5 x1fns5xo x1n2onr6 xh8yej3 xu0aao5 xmjcpbm']").click()
 
     while True:
         # vajutab sõprade listi scrollbari peale ja siis vajutab end klahvi kuni jõuab listi lõppu
@@ -157,5 +162,6 @@ def sõbrad(browser_driver):
 
 if __name__ == '__main__':
     browser = ava_brauser()
-    logi_sisse(browser, ls)
+
+    logi_sisse(browser, loe_andmed())
     soovi_õnne(browser)
