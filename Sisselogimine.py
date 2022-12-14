@@ -10,6 +10,11 @@ root.title("Sisselogija")
 root.iconbitmap("icon.ico")
 
 
+ls2 = []
+f = open("andmed.txt", "r")
+for i in f:
+    ls2 += [i.strip()]
+   
 def vajutus():
     andmed = []
     andmed += [entry1.get()] #kasutajanimi
@@ -25,7 +30,11 @@ label1 = CTkLabel(root, text="Kasutajanimi: ")
 label2 = CTkLabel(root, text="Parool: ")
 entry1 = CTkEntry(root)
 entry2 = CTkEntry(root, show="*")
+entry1.insert(END, ls2[0])
+entry2.insert(END, ls2[1])   
 button1 = CTkButton(root, text="Logi sisse", command=lambda: [vajutus(), root.destroy()])
+
+f.close()
 
 label0.grid(row=1, column=2)
 label1.grid(row=2,column=1)
